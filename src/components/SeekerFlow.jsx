@@ -3,7 +3,7 @@ import Icon from './Icon'
 import Placeholder from './Placeholder'
 import RealMap from './RealMap'
 import { LISTINGS, RESOURCES, RECIPES } from '../data/hearthData'
-import { fetchAvailableListings, matchSeeker, reserveListing } from '../lib/api'
+import { fetchAvailableListings, matchSeeker, reserveListing, getTonightsPick } from '../lib/api'
 import { getSeekerProfile, saveSeekerProfile, clearSeekerProfile } from '../lib/auth'
 
 const Dot = ({ color = 'var(--ember)', size = 8 }) => (
@@ -89,6 +89,8 @@ function SearchPanel({ onComplete, initialQuery }) {
   const [saveName, setSaveName] = useState(saved?.name || '')
   const [showNameInput, setShowNameInput] = useState(false)
   const [lastPressed, setLastPressed] = useState(null)
+  const [pickLoading, setPickLoading] = useState(false)
+  const [pickBanner, setPickBanner] = useState(null)
   const autoRan = useRef(false)
 
   // Auto-search when arriving from landing with a query
@@ -120,6 +122,21 @@ function SearchPanel({ onComplete, initialQuery }) {
       setStatus('Something went wrong — try again.')
       setLoading(false)
     }
+  }
+
+  const handleTonightsPick = async () => {
+    if (loading) return
+    setPickBanner(null)
+    try {
+      const listings = await fetchAvailableListings()
+      if (listings.length > 0) {
+        const pick = listings.reduce((a, b) =>
+          (a.portionsLeft ?? a.portions ?? 0) <= (b.portionsLeft ?? b.portions ?? 0) ? a : b
+        )
+        setPickBanner({ headline: pick.title, story: `Only ${pick.portionsLeft ?? pick.portions ?? '?'} portions left from ${pick.providerName} — grab it before it's gone.` })
+        setNote(pick.title)
+      }
+    } catch {}
   }
 
   const chipStyle = (active, pressed) => ({
@@ -168,6 +185,40 @@ function SearchPanel({ onComplete, initialQuery }) {
             <div style={{ fontSize: 15, color: 'var(--ink-2)', maxWidth: 460 }}>
               Set your preferences and we'll match you with real food available near UCLA right now.
             </div>
+          </div>
+
+          {/* Tonight's Pick button */}
+          <div style={{ marginBottom: 28 }}>
+            <button
+              onClick={handleTonightsPick}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '12px 20px', borderRadius: 14, cursor: 'pointer',
+                background: 'linear-gradient(135deg, var(--ember-t) 0%, oklch(0.96 0.04 60) 100%)',
+                border: '1.5px solid var(--ember)', width: '100%', textAlign: 'left',
+                boxShadow: '0 2px 14px rgba(224,108,56,0.15)',
+                transition: 'all 0.18s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(224,108,56,0.28)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 14px rgba(224,108,56,0.15)'; e.currentTarget.style.transform = 'none' }}
+            >
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ember)', animation: 'pulse 1.5s ease-in-out infinite', flexShrink: 0 }}/>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>
+                  {"Tonight's Pick"}
+                </div>
+                <div style={{ fontSize: 12, color: 'oklch(0.45 0.12 50)', marginTop: 2 }}>
+                  {pickBanner ? pickBanner.story : 'Claude scans all listings and picks the one that needs you most'}
+                </div>
+              </div>
+              <Icon name="arrow" size={14} color="var(--ember)"/>
+            </button>
+            {pickBanner && !pickLoading && (
+              <div style={{ marginTop: 8, padding: '10px 14px', borderRadius: 10, background: 'var(--paper-2)', border: '1px solid var(--line)', fontSize: 13 }}>
+                <strong style={{ color: 'var(--ember)' }}>{pickBanner.headline}</strong>
+                <span style={{ color: 'var(--ink-3)', marginLeft: 8 }}>— pre-filled above. Hit Find Food to claim it.</span>
+              </div>
+            )}
           </div>
 
           {/* Saved banner */}

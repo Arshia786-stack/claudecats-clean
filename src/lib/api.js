@@ -158,6 +158,17 @@ export async function generateReport(stats) {
   return res.json()
 }
 
+export async function getTonightsPick(listings) {
+  const res = await fetch('/api/claude/tonights-pick', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ listings }),
+  })
+  if (!res.ok) throw new Error('Tonight\'s pick failed')
+  const { pick } = await res.json()
+  return pick
+}
+
 // Orchestrated seeker search: onboard → get listings → match
 export async function seekerSearch(prompt) {
   const [{ profile }, listings] = await Promise.all([

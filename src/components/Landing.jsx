@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Icon from './Icon'
 import RealMap from './RealMap'
-import { fetchAvailableListings } from '../lib/api'
+import { fetchAvailableListings, getTonightsPick } from '../lib/api'
 
 const SUGGESTIONS = [
   'Halal food tonight',
@@ -93,10 +93,28 @@ export default function Landing({ onFlow, onStartSeeker }) {
   const [chatLoading, setChatLoading] = useState(false)
   const [matchedIds, setMatchedIds] = useState([])
   const [mapHighlight, setMapHighlight] = useState(null)
+  const [tonightsPick, setTonightsPick] = useState(null)
+  const [pickLoading, setPickLoading] = useState(false)
   const inputRef = useRef(null)
+  const pickFetched = useRef(false)
 
   useEffect(() => {
-    fetchAvailableListings().then(setListings).catch(() => {})
+    fetchAvailableListings().then(data => {
+      setListings(data)
+      if (data.length > 0 && !pickFetched.current) {
+        pickFetched.current = true
+        setPickLoading(true)
+        getTonightsPick(data)
+          .then(pick => {
+            if (pick) {
+              const listing = data.find(l => l.id === pick.listingId)
+              setTonightsPick({ ...pick, listing })
+            }
+          })
+          .catch(() => {})
+          .finally(() => setPickLoading(false))
+      }
+    }).catch(() => {})
   }, [])
 
   const pins = listings
@@ -275,6 +293,68 @@ export default function Landing({ onFlow, onStartSeeker }) {
                 {s}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* Tonight's Pick */}
+        {!chatActive && (pickLoading || tonightsPick) && (
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--ember)', animation: 'pulse 1.5s ease-in-out infinite' }}/>
+              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ember)', fontWeight: 700 }}>Tonight's Pick</span>
+            </div>
+            {pickLoading && !tonightsPick ? (
+              <div style={{ padding: '16px 18px', borderRadius: 18, border: '1.5px solid var(--line)', background: 'var(--paper-2)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="typing"><span/><span/><span/></span>
+                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Claude is picking tonight's best option…</span>
+              </div>
+            ) : tonightsPick && (
+              <button
+                onClick={() => onStartSeeker(tonightsPick.listing?.title || tonightsPick.headline)}
+                style={{
+                  width: '100%', textAlign: 'left', padding: '16px 18px',
+                  borderRadius: 18, cursor: 'pointer',
+                  background: 'linear-gradient(135deg, var(--ember-t) 0%, oklch(0.96 0.04 60) 100%)',
+                  border: '1.5px solid var(--ember)',
+                  transition: 'all 0.18s',
+                  boxShadow: '0 2px 16px rgba(224,108,56,0.12)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(224,108,56,0.2)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(224,108,56,0.12)' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                  {tonightsPick.listing?.imageBase64 ? (
+                    <img
+                      src={`data:${tonightsPick.listing.imageMime};base64,${tonightsPick.listing.imageBase64}`}
+                      alt=""
+                      style={{ width: 54, height: 54, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div style={{ width: 54, height: 54, borderRadius: 12, background: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
+                      {(tonightsPick.listing?.title || 'F')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.25, marginBottom: 4, color: 'var(--ink)' }}>{tonightsPick.headline}</div>
+                    <div style={{ fontSize: 13, color: 'oklch(0.42 0.14 50)', lineHeight: 1.55, marginBottom: 8 }}>{tonightsPick.story}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      {tonightsPick.listing?.providerName && (
+                        <span style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 500 }}>{tonightsPick.listing.providerName}</span>
+                      )}
+                      {tonightsPick.listing?.portionsLeft > 0 && (
+                        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: 'var(--ember)', color: '#fff', fontWeight: 700 }}>
+                          {tonightsPick.listing.portionsLeft} left
+                        </span>
+                      )}
+                      {(tonightsPick.listing?.dietary || []).slice(0, 2).map(d => (
+                        <span key={d} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: 'oklch(0.94 0.05 60)', color: 'oklch(0.42 0.14 50)', fontWeight: 500 }}>{d}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <Icon name="arrow" size={14} color="var(--ember)"/>
+                </div>
+              </button>
+            )}
           </div>
         )}
 

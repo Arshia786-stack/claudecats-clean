@@ -452,4 +452,33 @@ Rules:
   }
 })
 
+// Tonight's Pick — Claude selects the listing that needs the most urgent help
+router.post('/tonights-pick', async (req, res) => {
+  const { listings = [] } = req.body
+  if (listings.length === 0) return res.json({ pick: null })
+
+  const summary = listings.map(l =>
+    `ID: ${l.id} | "${l.title}" by ${l.providerName} | ${l.portionsLeft ?? l.portions ?? 0} portions left | Dietary: ${(l.dietary || []).join(', ') || 'none'} | Area: ${l.area || 'unknown'} | Story: ${l.story || ''}`
+  ).join('\n')
+
+  const msg = await anthropic.messages.create({
+    model: 'claude-opus-4-5',
+    max_tokens: 200,
+    system: `You are FULL, a community food-sharing platform. ${FORBIDDEN}`,
+    messages: [{
+      role: 'user',
+      content: `Here are the live food listings available tonight:\n${summary}\n\nPick ONE listing that most urgently needs someone to claim it — fewest portions left, most unique, or most socially impactful. Reply with valid JSON only:\n{"listingId": "<id>", "headline": "<5-7 word punchy headline>", "story": "<one warm, specific sentence about why this matters tonight>"}`,
+    }],
+  })
+
+  try {
+    const raw = msg.content[0].text.trim()
+    const json = raw.startsWith('{') ? raw : raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)
+    const pick = JSON.parse(json)
+    res.json({ pick })
+  } catch {
+    res.json({ pick: null })
+  }
+})
+
 export default router
