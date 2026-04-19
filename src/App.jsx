@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './components/Header'
 import SearchHero from './components/SearchHero'
 import MapPanel from './components/MapPanel'
@@ -14,22 +14,17 @@ import {
 } from './lib/api'
 
 export default function App() {
-  const [view, setView] = useState('seeker')
+  const [flow, setFlow] = useState(() => localStorage.getItem('hearth.flow') || 'landing')
+  const [initialQuery, setInitialQuery] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  // Seeker state
-  const [seekerPrompt, setSeekerPrompt] = useState('')
-  const [seekerLoading, setSeekerLoading] = useState(false)
-  const [seekerError, setSeekerError] = useState(null)
-  const [parsedIntent, setParsedIntent] = useState(null)
-  const [matches, setMatches] = useState([])
-  const [selectedMatchId, setSelectedMatchId] = useState(null)
+  useEffect(() => { localStorage.setItem('hearth.flow', flow) }, [flow])
+  useEffect(() => { setMenuOpen(false) }, [flow])
 
-  // Reserve + recipe state
   const [reservedId, setReservedId] = useState(null)
   const [reserveLoading, setReserveLoading] = useState(false)
   const [recipe, setRecipe] = useState(null)
 
-  // Provider state
   const [providerPrompt, setProviderPrompt] = useState('')
   const [providerLoading, setProviderLoading] = useState(false)
   const [providerError, setProviderError] = useState(null)
@@ -37,6 +32,13 @@ export default function App() {
   const [publishing, setPublishing] = useState(false)
   const [publishSuccess, setPublishSuccess] = useState(false)
   const [impactMessage, setImpactMessage] = useState(null)
+
+  const [seekerPrompt, setSeekerPrompt] = useState(initialQuery)
+  const [seekerLoading, setSeekerLoading] = useState(false)
+  const [seekerError, setSeekerError] = useState(null)
+  const [parsedIntent, setParsedIntent] = useState(null)
+  const [matches, setMatches] = useState([])
+  const [selectedMatchId, setSelectedMatchId] = useState(null)
 
   async function handleSeekerSubmit() {
     if (!seekerPrompt.trim() || seekerLoading) return
@@ -124,9 +126,9 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-stone-50">
-      <Header view={view} onViewChange={setView} />
+      <Header view={flow} onViewChange={setFlow} />
 
-      {view === 'seeker' ? (
+      {flow === 'seeker' ? (
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <div className="min-h-0 flex-1 overflow-y-auto px-8 py-8">
             <div className="mx-auto max-w-xl">
