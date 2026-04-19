@@ -184,6 +184,6 @@ export const impactMessageTemplates = {
   },
   default: {
     headline: "Your food reached your community tonight.",
-    body: "Someone nearby had a real meal because of what you shared. That kind of contribution — quiet, direct, and dignified — is exactly what Hearth is built on. Thank you.",
+    body: "Someone nearby had a real meal because of what you shared. That kind of contribution — quiet, direct, and dignified — is exactly what FULL is built on. Thank you.",
   },
 }

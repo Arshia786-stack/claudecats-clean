@@ -1,4 +1,4 @@
-# Hearth — Team Build Plan
+# FULL — Team Build Plan
 **4 people · 6 hours · Ship something real**
 
 ---
@@ -269,7 +269,7 @@ hey so i made way too much jollof rice tonight, birthday thing got cancelled lol
 - I'm from West Africa, rice dishes, stews
 
 **Read this out loud after pickup — do not show it on screen, read it:**
-"Hey Amara — the jollof rice you made tonight went to a student from West Africa who hadn't had food that felt like home in weeks. They said it tasted like home. +15 Hearth Points today, 340 total. You're 160 away from your Community Feast invite."
+"Hey Amara — the jollof rice you made tonight went to a student from West Africa who hadn't had food that felt like home in weeks. They said it tasted like home. +15 FULL Points today, 340 total. You're 160 away from your Community Feast invite."
 
 Pause. Do not talk for two seconds. Let it land.
 
@@ -283,4 +283,4 @@ AI agent calls the provider to confirm stock before the student makes the trip. 
 
 ## The Pitch Close — Everyone Memorizes This
 
-"We didn't build a food bank. We built the infrastructure that makes every person in a community a potential part of the solution. It's called Hearth. Because everyone deserves one."
+"We didn't build a food bank. We built the infrastructure that makes every person in a community a potential part of the solution. It's called FULL. Because everyone deserves one."

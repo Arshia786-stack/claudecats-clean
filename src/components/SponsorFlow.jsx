@@ -50,8 +50,8 @@ function Chart({ data }) {
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 200 }}>
       <defs>
         <linearGradient id="emberFade" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="oklch(0.62 0.15 38)" stopOpacity="0.18"/>
-          <stop offset="1" stopColor="oklch(0.62 0.15 38)" stopOpacity="0"/>
+          <stop offset="0" stopColor="var(--ember)" stopOpacity="0.18"/>
+          <stop offset="1" stopColor="var(--ember)" stopOpacity="0"/>
         </linearGradient>
       </defs>
       {[0, 0.25, 0.5, 0.75, 1].map(y => (
@@ -197,10 +197,10 @@ function SponsorReport({ onBack }) {
         <div style={{ fontSize: 17, lineHeight: 1.65, color: 'var(--ink)', fontFamily: 'var(--f-serif)' }}>
           <p style={{ marginTop: 0 }}>Dear {SPONSOR_METRICS.name} team,</p>
           <p>
-            This week, <strong>4,812 meals</strong> moved through Hearth — a 12% lift over the previous week — reaching <strong>1,207 neighbors</strong> across six San Francisco neighborhoods. Thirty-eight providers contributed, three of them brand-new.
+            This week, <strong>4,812 meals</strong> moved through FULL — a 12% lift over the previous week — reaching <strong>1,207 neighbors</strong> across six San Francisco neighborhoods. Thirty-eight providers contributed, three of them brand-new.
           </p>
           <p>
-            The Mission District led again (1,280 meals), driven by Mission Food Pantry's new evening window. Bayview saw the steepest climb — up 34% — after SF Marin Food Bank started posting grocery boxes to Hearth instead of a phone tree.
+            The Mission District led again (1,280 meals), driven by Mission Food Pantry's new evening window. Bayview saw the steepest climb — up 34% — after SF Marin Food Bank started posting grocery boxes to FULL instead of a phone tree.
           </p>
           <p>
             Our average match time <strong>dropped to 2.4 minutes</strong>, down 20%. Most of that gain came from better dietary parsing: halal and vegetarian searches now resolve on the first message 87% of the time.
@@ -229,7 +229,7 @@ function SponsorReport({ onBack }) {
           </p>
           <p style={{ marginBottom: 0 }}>
             With warmth,<br/>
-            <em>The Hearth team</em>
+            <em>The FULL team</em>
           </p>
         </div>
 

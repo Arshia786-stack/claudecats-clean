@@ -19,7 +19,7 @@ function AccountMenu({ onFlow }) {
       padding: 10, zIndex: 50,
     }}>
       <div style={{ padding: '10px 14px 6px' }}>
-        <div className="mono" style={{ color: 'var(--ink-3)' }}>Settings</div>
+        <div style={{ color: 'var(--ink-3)', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Settings</div>
       </div>
       {items.map((it, i) => (
         <button key={i} style={{
@@ -62,6 +62,49 @@ function AccountMenu({ onFlow }) {
 }
 
 export default function TopBar({ onFlow, current, menuOpen, onOpenMenu }) {
+  const defaultLocationLabel = 'Los Angeles, CA'
+  const [locationLabel, setLocationLabel] = useState(defaultLocationLabel)
+  const [isLocating, setIsLocating] = useState(false)
+
+  async function handleLocationRequest() {
+    if (!navigator.geolocation || isLocating) return
+
+    setIsLocating(true)
+
+    const getPosition = () => new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000,
+      })
+    })
+
+    try {
+      const position = await getPosition()
+      const { latitude, longitude } = position.coords
+
+      try {
+        const res = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+        )
+        const data = await res.json()
+        const nextLabel =
+          data.city ||
+          data.locality ||
+          data.principalSubdivision ||
+          'Nearby'
+
+        setLocationLabel(nextLabel)
+      } catch {
+        setLocationLabel('Nearby')
+      }
+    } catch {
+      setLocationLabel(defaultLocationLabel)
+    } finally {
+      setIsLocating(false)
+    }
+  }
+
   return (
     <div className="topbar">
       <div style={{ display: 'flex', alignItems: 'center', gap: 44 }}>
@@ -71,14 +114,14 @@ export default function TopBar({ onFlow, current, menuOpen, onOpenMenu }) {
       </div>
       <nav style={{ display: 'flex', gap: 4, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
         {[
-          { id: 'seeker', label: 'Find food' },
-          { id: 'provider', label: 'Share food' },
-          { id: 'sponsor', label: 'Sponsor' },
+          { id: 'seeker', label: 'Find Food' },
+          { id: 'provider', label: 'Share Food' },
+          { id: 'sponsor', label: 'Partners' },
         ].map(item => (
           <button key={item.id} onClick={() => onFlow(item.id)}
             style={{
               padding: '10px 18px', borderRadius: 999,
-              fontSize: 14.5, fontWeight: 500,
+              fontSize: 14, fontWeight: 500,
               color: current === item.id ? 'var(--ink)' : 'var(--ink-2)',
               background: current === item.id ? 'var(--paper-3)' : 'transparent',
               transition: 'background 0.15s',
@@ -89,8 +132,13 @@ export default function TopBar({ onFlow, current, menuOpen, onOpenMenu }) {
         ))}
       </nav>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
-        <button className="btn btn-ghost" style={{ height: 40, fontSize: 13, padding: '0 16px' }}>
-          <Icon name="pin" size={14} color="var(--ember)"/> San Francisco
+        <button
+          className="btn btn-ghost"
+          style={{ height: 40, fontSize: 14, padding: '0 16px' }}
+          onClick={handleLocationRequest}
+          title="Use your current location"
+        >
+          <Icon name="pin" size={14} color="var(--ember)"/> {isLocating ? 'Locating…' : locationLabel}
         </button>
         <button onClick={onOpenMenu} style={{
           display: 'flex', alignItems: 'center', gap: 10,
@@ -99,7 +147,7 @@ export default function TopBar({ onFlow, current, menuOpen, onOpenMenu }) {
           background: 'var(--paper-2)', boxShadow: 'var(--shadow-card)',
         }}>
           <Icon name="menu" size={16} color="var(--ink-2)"/>
-          <Avatar name="You" size={28} tone="ember"/>
+          <Avatar name={locationLabel} size={28} tone="ember"/>
         </button>
         {menuOpen && <AccountMenu onFlow={onFlow}/>}
       </div>

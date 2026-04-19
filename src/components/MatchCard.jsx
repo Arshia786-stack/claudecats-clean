@@ -7,7 +7,7 @@ const dietaryStyle = {
 }
 
 const providerStyle = {
-  neighbor: 'bg-orange-50 text-orange-700',
+  neighbor: 'bg-teal-50 text-teal-700',
   'campus cafe': 'bg-blue-50 text-blue-700',
   'campus org': 'bg-violet-50 text-violet-700',
   restaurant: 'bg-rose-50 text-rose-700',

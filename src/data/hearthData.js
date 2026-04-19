@@ -114,7 +114,7 @@ export const SPONSOR_METRICS = {
 
 export const RECIPE = {
   title: "3 things you can do with chicken & rice",
-  subtitle: "A note from Hearth, based on what you reserved",
+  subtitle: "A note from FULL, based on what you reserved",
   tips: [
     { h: "Tonight", b: "Eat it as-is — it's balanced and ready. Squeeze lemon if you have it." },
     { h: "Tomorrow lunch", b: "Wrap leftovers in flatbread with any greens or pickles. Add hot sauce." },

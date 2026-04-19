@@ -14,7 +14,7 @@ router.get('/stats', (_req, res) => {
     recentMilestones: [
       'Amara K. reached Hero status — 42 portions shared',
       'CS Department crossed 200 meals contributed',
-      'Priya hit 100 Hearth Points — new Regular badge',
+      'Priya hit 100 FULL Points — new Regular badge',
       'Community Fridge: 500+ meals served this semester',
       'Fatima awarded top provider this week — 60 portions',
     ],

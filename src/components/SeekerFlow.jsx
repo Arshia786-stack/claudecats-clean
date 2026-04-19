@@ -10,7 +10,7 @@ const Dot = ({ color = 'var(--ember)', size = 8 }) => (
 
 function SeekerChat({ initialQuery, onComplete }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", text: "Hi, I'm Hearth. What would help most right now?" },
+    { role: "assistant", text: "Hi, I'm FULL. What would help most right now?" },
   ])
   const [input, setInput] = useState(initialQuery || "")
   const [typing, setTyping] = useState(false)
@@ -55,7 +55,7 @@ function SeekerChat({ initialQuery, onComplete }) {
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '40px 24px 200px' }}>
       <div style={{ marginBottom: 24 }}>
         <div className="mono" style={{ color: 'var(--ember)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Dot color="var(--ember)"/> Talking with Hearth
+          <Dot color="var(--ember)"/> Talking with FULL
         </div>
         <h1 className="serif" style={{ fontSize: 38, margin: 0, letterSpacing: '-0.01em' }}>
           Let's figure out what you need.
@@ -150,7 +150,7 @@ function ProfileSummary({ onBack }) {
   ]
   return (
     <div className="card" style={{ padding: 20, maxWidth: 360 }}>
-      <div className="mono" style={{ color: 'var(--ink-3)', marginBottom: 8 }}>Profile Hearth built for you</div>
+      <div className="mono" style={{ color: 'var(--ink-3)', marginBottom: 8 }}>Profile FULL built for you</div>
       <div className="serif" style={{ fontSize: 22, marginBottom: 12 }}>Here's what I heard.</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {profile.map(p => (
@@ -326,7 +326,7 @@ function ReservedConfirmation({ listing, onClose }) {
           <div style={{ padding: 20, borderRadius: 14, border: '1px dashed var(--line-2)', marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <Icon name="sparkle" size={14} color="var(--ember)"/>
-              <div className="mono" style={{ color: 'var(--ember)' }}>A note from Hearth</div>
+              <div className="mono" style={{ color: 'var(--ember)' }}>A note from FULL</div>
             </div>
             <div className="serif" style={{ fontSize: 22, marginBottom: 14, letterSpacing: '-0.005em' }}>{RECIPE.title}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

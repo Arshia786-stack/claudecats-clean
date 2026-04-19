@@ -20,6 +20,6 @@ app.use('/api/claude', claudeRouter)
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 
 app.listen(PORT, () => {
-  console.log(`Hearth API running on http://localhost:${PORT}`)
+  console.log(`FULL API running on http://localhost:${PORT}`)
   console.log('In-memory listings loaded — do NOT restart during demo')
 })

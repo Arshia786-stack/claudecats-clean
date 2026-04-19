@@ -26,7 +26,7 @@ router.post('/onboard', async (req, res) => {
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 1024,
-      system: `You are Hearth, a dignified food concierge for students. Extract the seeker's needs from their message. ${FORBIDDEN}
+      system: `You are FULL, a dignified food concierge for students. Extract the seeker's needs from their message. ${FORBIDDEN}
 Return ONLY a JSON object:
 {
   "dietary": [],          // halal, vegan, vegetarian, gluten-free, kosher, nut-free, dairy-free
@@ -64,7 +64,7 @@ router.post('/match', async (req, res) => {
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 2048,
-      system: `You are Hearth's matching engine. Match food listings to a seeker's profile.
+      system: `You are FULL's matching engine. Match food listings to a seeker's profile.
 ABSOLUTE RULES — never break:
 - Seeker is halal → exclude ALL non-halal listings
 - Seeker is vegan → exclude ALL non-vegan listings
@@ -115,7 +115,7 @@ router.post('/parse-listing', async (req, res) => {
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 1024,
-      system: `You are Hearth's listing parser. Convert a provider's message into a structured food listing.
+      system: `You are FULL's listing parser. Convert a provider's message into a structured food listing.
 ${FORBIDDEN}
 Return ONLY a JSON object:
 {
@@ -211,7 +211,7 @@ router.post('/notify', async (req, res) => {
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 512,
-      system: `You write the most important message in the Hearth app — the notification a provider receives after their food reaches someone.
+      system: `You write the most important message in the FULL app — the notification a provider receives after their food reaches someone.
 Rules:
 - Under 70 words total
 - Use the provider's actual name and food name
@@ -233,7 +233,7 @@ New total: ${newTotal}`,
 
     const notification = parseJson(response.content[0].text, {
       headline: `${providerName}, your ${foodDescription} reached your community tonight.`,
-      body: `Someone nearby had a real meal because of what you shared. +${pointsEarned} Hearth Points today, ${newTotal} total.`,
+      body: `Someone nearby had a real meal because of what you shared. +${pointsEarned} FULL Points today, ${newTotal} total.`,
     })
 
     res.json(notification)
@@ -252,7 +252,7 @@ router.post('/report', async (req, res) => {
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 512,
-      system: `You write weekly impact reports for Hearth sponsors. Stripe dashboard energy — confident, clean, not charity-coded.
+      system: `You write weekly impact reports for FULL sponsors. Stripe dashboard energy — confident, clean, not charity-coded.
 ${FORBIDDEN}
 Return ONLY a JSON object:
 { "summary": "3-4 sentences. Open with a human story, follow with numbers, end with what their support enabled." }`,
@@ -263,7 +263,7 @@ Return ONLY a JSON object:
     })
 
     const report = parseJson(response.content[0].text, {
-      summary: `This week, ${stats.totalMeals} meals reached students who needed them. ${stats.totalActiveProviders} community members contributed across ${stats.totalDietaryCategoriesCovered} dietary categories. ${stats.totalPointsAwarded} Hearth Points were awarded. Your support made this possible.`,
+      summary: `This week, ${stats.totalMeals} meals reached students who needed them. ${stats.totalActiveProviders} community members contributed across ${stats.totalDietaryCategoriesCovered} dietary categories. ${stats.totalPointsAwarded} FULL Points were awarded. Your support made this possible.`,
     })
 
     res.json(report)

@@ -7,7 +7,7 @@ export default function Header({ view, onViewChange }) {
         {/* Brand */}
         <div className="flex items-center gap-2.5">
           <span className="text-xl leading-none">🔥</span>
-          <span className="text-base font-bold tracking-tight text-stone-900">Hearth</span>
+          <span className="text-base font-bold tracking-tight text-stone-900">FULL</span>
         </div>
 
         {/* View toggle */}

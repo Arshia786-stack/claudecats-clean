@@ -1,4 +1,4 @@
-export default function MiniMap({ pins = [], highlight = null, height = 520 }) {
+export default function MiniMap({ pins = [], highlight = null, height = 520, borderRadius = 'var(--r-lg)' }) {
   const streets = [
     "M-20 80 Q 200 60 440 120 T 900 100",
     "M-20 180 Q 200 200 400 160 T 900 240",
@@ -13,7 +13,7 @@ export default function MiniMap({ pins = [], highlight = null, height = 520 }) {
     <div style={{
       position: 'relative', width: '100%', height,
       background: 'oklch(0.955 0.012 75)',
-      borderRadius: 'var(--r-lg)',
+      borderRadius,
       overflow: 'hidden', border: '1px solid var(--line)',
     }}>
       <svg viewBox="0 0 900 600" preserveAspectRatio="xMidYMid slice"

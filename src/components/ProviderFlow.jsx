@@ -198,7 +198,7 @@ export default function ProviderFlow() {
                 <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--ember-t)', color: 'var(--ember-d)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Icon name="sparkle" size={14}/>
                 </div>
-                <div style={{ fontWeight: 500 }}>Hearth</div>
+                <div style={{ fontWeight: 500 }}>FULL</div>
               </div>
               <div className="serif" style={{ fontSize: 22, lineHeight: 1.35, marginBottom: 12, letterSpacing: '-0.005em' }}>
                 All 30 portions went out in under 90 minutes.
@@ -218,7 +218,7 @@ export default function ProviderFlow() {
 
           <div className="card" style={{ padding: 24 }}>
             <div className="mono" style={{ color: 'var(--ember)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon name="flame" size={12}/> Hearth points
+              <Icon name="flame" size={12}/> FULL points
             </div>
             <div className="serif" style={{ fontSize: 56, lineHeight: 1, letterSpacing: '-0.02em' }}>+ 140</div>
             <div style={{ color: 'var(--ink-2)', marginTop: 10, fontSize: 14 }}>Awarded for 28 meals served + a fast, safe listing.</div>
