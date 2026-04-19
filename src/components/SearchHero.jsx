@@ -1,6 +1,7 @@
 import PromptBar from './PromptBar'
 import PromptChips from './PromptChips'
 import MatchList from './MatchList'
+import RecipeCard from './RecipeCard'
 import EmptyState from './EmptyState'
 import LoadingState from './LoadingState'
 import ErrorState from './ErrorState'
@@ -49,13 +50,14 @@ function IntentTags({ intent }) {
 export default function SearchHero({
   prompt, onChange, onSubmit, loading, error,
   parsedIntent, matches, selectedMatchId, onSelectMatch,
+  onReserve, reservedId, reserveLoading, recipe,
 }) {
   const hasResults = matches.length > 0
   const isIdle = !loading && !error && !parsedIntent
+  const reservedMatch = reservedId ? matches.find((m) => m.id === reservedId) : null
 
   return (
     <div className="flex flex-col">
-      {/* Hero headline — hide once results are showing to save space */}
       {isIdle && (
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
@@ -81,9 +83,26 @@ export default function SearchHero({
       {loading && <LoadingState message="Finding what's nearby…" />}
       {error && <ErrorState message={error} onRetry={onSubmit} />}
       {parsedIntent && !loading && <IntentTags intent={parsedIntent} />}
+
       {hasResults && !loading && (
-        <MatchList matches={matches} selectedId={selectedMatchId} onSelect={onSelectMatch} />
+        <MatchList
+          matches={matches}
+          selectedId={selectedMatchId}
+          onSelect={onSelectMatch}
+          onReserve={onReserve}
+          reservedId={reservedId}
+          reserveLoading={reserveLoading}
+        />
       )}
+
+      {reservedMatch && !reserveLoading && !recipe && (
+        <div className="mt-5 rounded-2xl border border-stone-200 bg-white p-4 text-sm text-stone-500">
+          Generating your recipe…
+        </div>
+      )}
+
+      {recipe && <RecipeCard recipe={recipe} />}
+
       {isIdle && <EmptyState />}
     </div>
   )

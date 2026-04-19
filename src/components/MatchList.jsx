@@ -1,6 +1,6 @@
 import MatchCard from './MatchCard'
 
-export default function MatchList({ matches, selectedId, onSelect }) {
+export default function MatchList({ matches, selectedId, onSelect, onReserve, reservedId, reserveLoading }) {
   if (!matches.length) return null
 
   return (
@@ -15,6 +15,10 @@ export default function MatchList({ matches, selectedId, onSelect }) {
             match={match}
             selected={selectedId === match.id}
             onSelect={onSelect}
+            onReserve={onReserve}
+            reserved={reservedId === match.id}
+            reserveLoading={reserveLoading && reservedId === match.id}
+            anyReserved={!!reservedId}
           />
         ))}
       </div>

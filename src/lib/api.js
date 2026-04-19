@@ -1,6 +1,4 @@
 // Real API client — calls the Express backend at /api/*
-// Replace mockApi.js imports with this file when backend is live.
-// Claude endpoints (/api/claude/*) are built by James.
 
 // --- Listings (Arshia) ---
 
@@ -50,16 +48,16 @@ export async function fetchSponsorStats() {
   return res.json()
 }
 
-// --- Claude endpoints (James) ---
+// --- Claude endpoints ---
 
-export async function seekerOnboard(messages) {
+async function claudeOnboard(messages) {
   const res = await fetch('/api/claude/onboard', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages }),
   })
   if (!res.ok) throw new Error('Claude onboard failed')
-  return res // streaming — caller reads res.body
+  return res.json()
 }
 
 export async function matchSeeker(seekerProfile, listings) {
@@ -92,6 +90,16 @@ export async function generateRecipe(foodItems, kitchenType, dietaryRestrictions
   return res.json()
 }
 
+export async function generateNotify({ foodDescription, providerName, portions, pointsEarned, newTotal }) {
+  const res = await fetch('/api/claude/notify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ foodDescription, providerName, portions, pointsEarned, newTotal }),
+  })
+  if (!res.ok) throw new Error('Notify failed')
+  return res.json() // { headline, body }
+}
+
 export async function generateReport(stats) {
   const res = await fetch('/api/claude/report', {
     method: 'POST',
@@ -100,4 +108,23 @@ export async function generateReport(stats) {
   })
   if (!res.ok) throw new Error('Report generation failed')
   return res.json()
+}
+
+// Orchestrated seeker search: onboard → get listings → match
+export async function seekerSearch(prompt) {
+  const [{ profile }, listings] = await Promise.all([
+    claudeOnboard([{ role: 'user', content: prompt }]),
+    fetchAvailableListings(),
+  ])
+
+  const matches = await matchSeeker(profile, listings)
+
+  const intent = {
+    dietary: profile.dietary || [],
+    urgency: profile.urgency || 'flexible',
+    kitchen: profile.kitchenType || 'any',
+    summary: profile.summary || '',
+  }
+
+  return { intent, matches }
 }

@@ -3,7 +3,15 @@ import Header from './components/Header'
 import SearchHero from './components/SearchHero'
 import MapPanel from './components/MapPanel'
 import ProviderPanel from './components/ProviderPanel'
-import { seekerSearch, submitProvider, generateImpactMessage } from './lib/mockApi'
+import {
+  seekerSearch,
+  parseListing,
+  addListing,
+  reserveListing,
+  awardPoints,
+  generateNotify,
+  generateRecipe,
+} from './lib/api'
 
 export default function App() {
   const [view, setView] = useState('seeker')
@@ -15,6 +23,11 @@ export default function App() {
   const [parsedIntent, setParsedIntent] = useState(null)
   const [matches, setMatches] = useState([])
   const [selectedMatchId, setSelectedMatchId] = useState(null)
+
+  // Reserve + recipe state
+  const [reservedId, setReservedId] = useState(null)
+  const [reserveLoading, setReserveLoading] = useState(false)
+  const [recipe, setRecipe] = useState(null)
 
   // Provider state
   const [providerPrompt, setProviderPrompt] = useState('')
@@ -32,6 +45,8 @@ export default function App() {
     setParsedIntent(null)
     setMatches([])
     setSelectedMatchId(null)
+    setReservedId(null)
+    setRecipe(null)
     try {
       const { intent, matches: results } = await seekerSearch(seekerPrompt.trim())
       setParsedIntent(intent)
@@ -44,13 +59,33 @@ export default function App() {
     }
   }
 
+  async function handleReserve(match) {
+    if (reserveLoading || reservedId) return
+    setReserveLoading(true)
+    setReservedId(match.id)
+    try {
+      await reserveListing(match.id)
+      const recipeData = await generateRecipe(
+        match.foodItems || [],
+        parsedIntent?.kitchen || 'any',
+        parsedIntent?.dietary || [],
+        parsedIntent?.culturalPreferences || [],
+      )
+      setRecipe(recipeData)
+    } catch {
+      // non-blocking — reservation succeeded even if recipe fails
+    } finally {
+      setReserveLoading(false)
+    }
+  }
+
   async function handleProviderSubmit() {
     if (!providerPrompt.trim() || providerLoading) return
     setProviderLoading(true)
     setProviderError(null)
     setParsedListing(null)
     try {
-      const listing = await submitProvider(providerPrompt.trim())
+      const listing = await parseListing(providerPrompt.trim())
       setParsedListing(listing)
     } catch (err) {
       setProviderError(err.message)
@@ -63,23 +98,35 @@ export default function App() {
     setPublishing(true)
     setPublishSuccess(true)
     try {
-      const impact = await generateImpactMessage(parsedListing)
+      await addListing(parsedListing)
+      const { pointsEarned, newTotal } = await awardPoints(
+        parsedListing.providerName || 'Anonymous',
+        parsedListing.portions || 1,
+        parsedListing.dietary || [],
+      )
+      const impact = await generateNotify({
+        foodDescription: parsedListing.title,
+        providerName: parsedListing.providerName || 'Anonymous',
+        portions: parsedListing.portions || 1,
+        pointsEarned,
+        newTotal,
+      })
       setImpactMessage(impact)
+    } catch {
+      setImpactMessage({
+        headline: 'Your food is live.',
+        body: 'Someone nearby will have a real meal because of what you shared. Thank you.',
+      })
     } finally {
       setPublishing(false)
     }
   }
 
-  function handleViewChange(next) {
-    setView(next)
-  }
-
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-stone-50">
-      <Header view={view} onViewChange={handleViewChange} />
+      <Header view={view} onViewChange={setView} />
 
       {view === 'seeker' ? (
-        // Split layout: scrollable results + fixed map
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <div className="min-h-0 flex-1 overflow-y-auto px-8 py-8">
             <div className="mx-auto max-w-xl">
@@ -93,6 +140,10 @@ export default function App() {
                 matches={matches}
                 selectedMatchId={selectedMatchId}
                 onSelectMatch={setSelectedMatchId}
+                onReserve={handleReserve}
+                reservedId={reservedId}
+                reserveLoading={reserveLoading}
+                recipe={recipe}
               />
             </div>
           </div>
@@ -101,7 +152,6 @@ export default function App() {
           </div>
         </div>
       ) : (
-        // Single column centered layout for provider
         <div className="min-h-0 flex-1 overflow-y-auto px-8 py-8">
           <ProviderPanel
             prompt={providerPrompt}
