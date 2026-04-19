@@ -82,7 +82,7 @@ function SponsorDashboard({ onReport }) {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-ghost" style={{ height: 40, fontSize: 13 }}><Icon name="doc" size={14}/> Export CSV</button>
-          <button className="btn btn-primary" style={{ height: 40, fontSize: 13 }} onClick={onReport}><Icon name="sparkle" size={14}/> Weekly report</button>
+          <button className="btn btn-primary" style={{ height: 40, fontSize: 13 }} onClick={onReport}><Icon name="chart" size={14}/> Weekly report</button>
         </div>
       </div>
 
@@ -180,7 +180,7 @@ function SponsorReport({ onBack }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
             <div className="mono" style={{ color: 'var(--ember)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon name="sparkle" size={12}/> Weekly report · written by Claude
+              <Icon name="chart" size={12}/> Weekly impact report
             </div>
             <div className="mono" style={{ color: 'var(--ink-3)' }}>{SPONSOR_METRICS.period}</div>
           </div>
@@ -235,7 +235,7 @@ function SponsorReport({ onBack }) {
 
         <div className="hr" style={{ margin: '32px 0' }}/>
         <div className="mono" style={{ color: 'var(--ink-3)', fontSize: 10 }}>
-          Generated {new Date().toLocaleString()} · data pulled from Airtable · written by Claude
+          Generated {new Date().toLocaleString()} · live data
         </div>
       </div>
     </div>

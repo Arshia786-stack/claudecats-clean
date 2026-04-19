@@ -220,6 +220,11 @@ a { color: inherit; }
   30% { transform: translateY(-4px); opacity: 1; }
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
 /* Top navbar */
 .topbar {
   display: flex; align-items: center; justify-content: space-between;

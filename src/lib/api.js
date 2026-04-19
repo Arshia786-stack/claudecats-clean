@@ -8,6 +8,12 @@ export async function fetchAvailableListings() {
   return res.json()
 }
 
+export async function fetchAllListings() {
+  const res = await fetch('/api/listings/all')
+  if (!res.ok) throw new Error('Failed to load library')
+  return res.json()
+}
+
 export async function addListing(parsedListing) {
   const res = await fetch('/api/listings/add', {
     method: 'POST',
@@ -78,6 +84,48 @@ export async function parseListing(rawMessage) {
   })
   if (!res.ok) throw new Error('Parse listing failed')
   return res.json()
+}
+
+export async function analyzeFood(imageBase64, mimeType, description) {
+  const res = await fetch('/api/claude/vision', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageBase64, mimeType, description }),
+  })
+  if (!res.ok) throw new Error('Vision analysis failed')
+  return res.json()
+}
+
+// POST /api/claude/chat — streaming SSE seeker chat
+// Calls onText(chunk) as words arrive, onDone(profile) when conversation is complete
+export async function claudeChatStream(messages, { onText, onDone, onError } = {}) {
+  const res = await fetch('/api/claude/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages }),
+  })
+  if (!res.ok) throw new Error('Chat failed')
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop()
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      try {
+        const parsed = JSON.parse(line.slice(6))
+        if (parsed.type === 'text') onText?.(parsed.text)
+        else if (parsed.type === 'meta' && parsed.done) onDone?.(parsed.profile)
+        else if (parsed.type === 'error') onError?.(parsed.error)
+      } catch {}
+    }
+  }
 }
 
 export async function generateRecipe(foodItems, kitchenType, dietaryRestrictions, culturalPreferences) {

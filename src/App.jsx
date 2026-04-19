@@ -4,6 +4,7 @@ import Landing from './components/Landing'
 import SeekerFlow from './components/SeekerFlow'
 import ProviderFlow from './components/ProviderFlow'
 import SponsorFlow from './components/SponsorFlow'
+import FoodLibrary from './components/FoodLibrary'
 
 export default function App() {
   const [flow, setFlow] = useState(() => localStorage.getItem('full.flow') || 'landing')
@@ -24,6 +25,7 @@ export default function App() {
         {flow === 'seeker' && <SeekerFlow initialQuery={initialQuery}/>}
         {flow === 'provider' && <ProviderFlow/>}
         {flow === 'sponsor' && <SponsorFlow/>}
+        {flow === 'library' && <FoodLibrary/>}
       </div>
     </>
   )

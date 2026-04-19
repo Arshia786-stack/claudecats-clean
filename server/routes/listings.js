@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   getAvailableListings,
+  getAllListings,
   addListing,
   reserveListing,
 } from '../../data/listings.js'
@@ -10,6 +11,11 @@ const router = Router()
 // GET /api/listings/available
 router.get('/available', (_req, res) => {
   res.json(getAvailableListings())
+})
+
+// GET /api/listings/all  — full library (includes images, reserved)
+router.get('/all', (_req, res) => {
+  res.json(getAllListings())
 })
 
 // POST /api/listings/add

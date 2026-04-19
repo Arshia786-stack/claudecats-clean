@@ -272,4 +272,184 @@ Return ONLY a JSON object:
   }
 })
 
+// POST /api/claude/vision — analyze food photo for nutrition
+// Body: { imageBase64, mimeType, description }
+router.post('/vision', async (req, res) => {
+  const { imageBase64, mimeType, description } = req.body
+  if (!imageBase64) return res.status(400).json({ error: 'imageBase64 required' })
+  try {
+    const response = await anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 400,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mimeType || 'image/jpeg', data: imageBase64 } },
+          { type: 'text', text: `Analyze this food photo. Context: "${description || 'food item'}".
+Return ONLY valid JSON:
+{"calories":450,"protein":28,"carbs":35,"fat":14,"fiber":4,"servingSize":"1 portion","items":["chicken","rice"],"confidence":"high","story":"One warm sentence about this specific food — what it is, where it's from, or why it looks good."}
+Be specific to what you see. Estimate per serving.` },
+        ],
+      }],
+    })
+    const nutrition = parseJson(response.content[0].text, {
+      calories: null, protein: null, carbs: null, fat: null,
+      fiber: null, servingSize: '1 portion', items: [], confidence: 'low',
+    })
+    res.json(nutrition)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/claude/chat — SSE streaming seeker conversation
+// Body: { messages: [{ role, content }] }
+// Stream: text chunks → meta { done, profile } → end
+router.post('/chat', async (req, res) => {
+  const { messages } = req.body
+  if (!messages?.length) return res.status(400).json({ error: 'messages required' })
+
+  const userTurns = messages.filter((m) => m.role === 'user').length
+  const isDone = userTurns >= 2
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+  res.flushHeaders()
+
+  const send = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`)
+
+  try {
+    const systemPrompt = isDone
+      ? `You are FULL, a warm food concierge. The user has given enough info.
+Write ONE warm sentence (max 15 words) confirming what you understood and that you're finding options.
+Example: "Got it — halal for one, tonight, microwave-friendly. Let me pull what's open near you."
+${FORBIDDEN}
+Plain text only. No lists. No questions. One sentence.`
+      : `You are FULL, a warm food concierge. Ask ONE specific follow-up question about dietary needs, number of people, or timing. Max 18 words.
+Example: "Any dietary needs I should know? Halal, vegan, allergies — anything like that."
+${FORBIDDEN}
+Plain text only. No lists. One question only.`
+
+    const apiMessages = messages.map((m) => ({
+      role: m.role === 'assistant' ? 'assistant' : 'user',
+      content: m.content || '',
+    }))
+
+    const stream = anthropic.messages.stream({
+      model: MODEL,
+      max_tokens: 120,
+      system: systemPrompt,
+      messages: apiMessages,
+    })
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        send({ type: 'text', text: event.delta.text })
+      }
+    }
+
+    if (isDone) {
+      try {
+        const profileRes = await anthropic.messages.create({
+          model: MODEL,
+          max_tokens: 400,
+          system: `Extract the food seeker's preferences from this conversation.
+${FORBIDDEN}
+Return ONLY valid JSON — no markdown:
+{"dietary":[],"healthConditions":[],"kitchenType":"any","culturalPreferences":[],"favoriteIngredients":[],"avoid":[],"urgency":"tonight","summary":""}
+dietary options: halal, vegan, vegetarian, gluten-free, kosher, nut-free, dairy-free
+kitchenType options: "microwave only", "no kitchen", "full kitchen", "any"
+urgency options: "tonight", "tomorrow", "flexible"
+summary: short label like "halal · tonight · microwave only"`,
+          messages: [
+            ...apiMessages,
+            { role: 'user', content: 'Extract my profile as JSON now.' },
+          ],
+        })
+        const profile = parseJson(profileRes.content[0].text, {
+          dietary: [], healthConditions: [], kitchenType: 'any',
+          culturalPreferences: [], favoriteIngredients: [], avoid: [],
+          urgency: 'tonight', summary: '',
+        })
+        send({ type: 'meta', done: true, profile })
+      } catch {
+        send({ type: 'meta', done: true, profile: { dietary: [], urgency: 'tonight', kitchenType: 'any', culturalPreferences: [], favoriteIngredients: [], avoid: [], summary: '' } })
+      }
+    } else {
+      send({ type: 'meta', done: false, profile: null })
+    }
+
+    send({ type: 'end' })
+    res.end()
+  } catch (err) {
+    send({ type: 'error', error: err.message })
+    res.end()
+  }
+})
+
+// POST /api/claude/assist — landing chat, streams a response using live listings context
+// Body: { message, listings }
+// Stream: SSE text chunks → meta { done, matchIds } → end
+router.post('/assist', async (req, res) => {
+  const { message, listings = [] } = req.body
+  if (!message) return res.status(400).json({ error: 'message required' })
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+  res.flushHeaders()
+
+  const send = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`)
+
+  try {
+    const listingSummary = listings.slice(0, 12).map(l =>
+      `[id:${l.id}] ${l.title} — ${l.providerName} — ${l.pickupWindow || 'today'} — ${l.area || l.pickupLocation} — dietary: ${(l.dietary||[]).join(', ')||'none'} — ${l.portionsLeft} portions left`
+    ).join('\n')
+
+    const stream = anthropic.messages.stream({
+      model: MODEL,
+      max_tokens: 200,
+      system: `You are FULL, a warm and direct food concierge for students near UCLA. You have access to real food listings available right now.
+
+Current listings:
+${listingSummary || 'No listings loaded yet.'}
+
+Rules:
+- Be warm, specific, and brief (max 3 sentences)
+- Mention actual listing names and providers by name
+- If dietary needs are mentioned (halal, vegan, etc.) only mention matching options
+- End with one concrete action: "Tap [Food Name] to reserve" or "Head to Find Food to see all matches"
+- ${FORBIDDEN}`,
+      messages: [{ role: 'user', content: message }],
+    })
+
+    const matchIds = []
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        send({ type: 'text', text: event.delta.text })
+      }
+    }
+
+    // Find top matching listing IDs based on message keywords
+    const msgLower = message.toLowerCase()
+    const dietary = ['halal', 'vegan', 'vegetarian', 'gluten-free', 'kosher'].filter(d => msgLower.includes(d))
+    const matched = listings
+      .filter(l => {
+        if (dietary.length === 0) return true
+        return dietary.some(d => l.dietary?.includes(d))
+      })
+      .slice(0, 3)
+      .map(l => l.id)
+
+    send({ type: 'meta', done: true, matchIds: matched.length ? matched : listings.slice(0, 3).map(l => l.id) })
+    send({ type: 'end' })
+    res.end()
+  } catch (err) {
+    send({ type: 'error', error: err.message })
+    res.end()
+  }
+})
+
 export default router
